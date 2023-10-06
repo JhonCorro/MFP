@@ -1,4 +1,3 @@
-import json
 class Graph:
     """
     A class representing a graph.
@@ -13,6 +12,7 @@ class Graph:
     - add_neighbour(self, vertex, neighbour): adds a neighbour to a vertex in the graph
     - add_edge(self, source, target, capacity): adds an edge to the graph
     - build_graph_from_matrix(self, path): builds a graph from a matrix
+    - breath_first_search(self, source, target): performs a breath first search on the graph
     """
 
     def __init__(self, matrix_path=None):
@@ -83,13 +83,33 @@ class Graph:
         edges = [(names[i], names[j], c) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
         list(map(lambda edge: self.add_edge(*edge), edges))
 
+    def breath_first_search(self, source, target):
+        """
+        Performs a breath first search on the graph.
+
+        Args:
+        - source (str): the name of the source vertex
+        - target (str): the name of the target vertex
+
+        Returns:
+        - path (list): the path from the source to the target
+        """
+        queue = [(source, [source])]
+        while queue:
+            (current_vertex, path) = queue.pop(0)
+            for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
+                if next_vertex == target:
+                    return path + [next_vertex]
+                else:
+                    queue.append((next_vertex, path + [next_vertex]))
+
     def __str__(self):
         """
         Returns a string representation of the graph.
         """
-        return f'Number of vertices: {len(self.vertices)}\nVertices: {self.vertices}\nNumber of edges: {len(self.edges.keys())}\nEdges: {self.edges}'
+        return f'Vertices: {self.vertices}\nEdges: {self.edges}'
 
 
 if __name__ == '__main__':
-    graph = Graph('./graph_examples/example_1.txt')
-    print(graph)
+    graph = Graph('./graph_examples/example_01.txt')
+    print(graph.breath_first_search('s', 't'))
