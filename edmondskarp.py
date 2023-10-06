@@ -45,9 +45,7 @@ class Graph:
         - vertex (str): the name of the vertex to add the neighbour to
         - neighbour (str): the name of the neighbour to add
         """
-        for v in self.vertices:
-            if v['name'] == vertex:
-                v['neighbours'].append(neighbour)
+        [v['neighbours'].append(neighbour) for v in self.vertices if v['name'] == vertex]
 
     def add_edge(self, source, target, capacity):
         """
