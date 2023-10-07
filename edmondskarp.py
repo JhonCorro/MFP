@@ -13,6 +13,7 @@ class Graph:
     - add_edge(self, source, target, capacity): adds an edge to the graph
     - build_graph_from_matrix(self, path): builds a graph from a matrix
     - breath_first_search(self, source, target): performs a breath first search on the graph
+    - edmonds_karp(self, source, target): performs the Edmonds-Karp algorithm on the graph
     """
 
     def __init__(self, matrix_path=None):
@@ -47,7 +48,7 @@ class Graph:
         """
         [v['neighbours'].append(neighbour) for v in self.vertices if v['name'] == vertex]
 
-    def add_edge(self, source, target, capacity):
+    def add_edge(self, source, target, capacity, flow=0):
         """
         Adds an edge to the graph.
 
@@ -55,6 +56,7 @@ class Graph:
         - source (str): the name of the source vertex
         - target (str): the name of the target vertex
         - capacity (int): the capacity of the edge
+        - flow (int): the flow of the edge (default: 0)
         """
         renamed_source = f'v_{source}' if source.isdigit() else source
         renamed_target = f'v_{target}' if target.isdigit() else target
@@ -63,7 +65,7 @@ class Graph:
             self.add_vertex(renamed_source)
         if not any(vertex['name'] == renamed_target for vertex in self.vertices):
             self.add_vertex(renamed_target)
-        self.edges[(renamed_source, renamed_target)] = capacity
+        self.edges[(renamed_source, renamed_target)] = [capacity, flow]
         self.add_neighbour(renamed_source, renamed_target)
 
     def build_graph_from_matrix(self, path):
@@ -92,14 +94,46 @@ class Graph:
         Returns:
         - path (list): the path from the source to the target
         """
+        visited = {vertex['name']: False for vertex in self.vertices}
         queue = [(source, [source])]
+        visited[source] = True
+
         while queue:
             (current_vertex, path) = queue.pop(0)
             for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
-                if next_vertex == target:
-                    return path + [next_vertex]
-                else:
-                    queue.append((next_vertex, path + [next_vertex]))
+                edge_capacity = self.edges[(current_vertex, next_vertex)][0]
+                edge_flow = self.edges[(current_vertex, next_vertex)][1]
+                if not visited[next_vertex] and edge_capacity > edge_flow:
+                    visited[next_vertex] = True
+                    if next_vertex == target:
+                        return path + [next_vertex]
+                    else:
+                        queue.append((next_vertex, path + [next_vertex]))
+        return None
+
+    def edmonds_karp(self, source, target):
+        """
+        Performs the Edmonds-Karp algorithm on the graph.
+
+        Args:
+        - source (str): the name of the source vertex
+        - target (str): the name of the target vertex
+
+        Returns:
+        - max_flow (int): the maximum flow of the graph
+        """
+        max_flow = 0
+        while True:
+            path = self.breath_first_search(source, target)
+            if not path:
+                break
+            flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
+            for i in range(len(path) - 1):
+                self.edges[(path[i], path[i+1])][1] += flow
+                # self.edges[(path[i+1], path[i])][1] -= flow
+            max_flow += flow
+            print(path)
+        return max_flow
 
     def __str__(self):
         """
@@ -110,4 +144,4 @@ class Graph:
 
 if __name__ == '__main__':
     graph = Graph('./graph_examples/example_01.txt')
-    print(graph.breath_first_search('s', 't'))
+    print(graph.edmonds_karp('s', 't'))
