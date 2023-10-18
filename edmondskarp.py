@@ -80,7 +80,7 @@ class Graph:
             matrix = [list(map(int, lines.split(','))) for lines in f.readlines()]
 
         list(map(self.add_vertex, names))
-        edges = [(names[i], names[j], c) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
+        edges = [(names[i], names[j], c) for i, row in enumerate(matrix) for j, c in enumerate(row)] # if c > 0]
         list(map(lambda edge: self.add_edge(*edge), edges))
 
     def breath_first_search(self, source, target):
@@ -130,7 +130,7 @@ class Graph:
             flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
             for i in range(len(path) - 1):
                 self.edges[(path[i], path[i+1])][1] += flow
-                # self.edges[(path[i+1], path[i])][1] -= flow
+                self.edges[(path[i+1], path[i])][1] -= flow
             max_flow += flow
             print(path)
         return max_flow
@@ -144,4 +144,6 @@ class Graph:
 
 if __name__ == '__main__':
     graph = Graph('./graph_examples/example_01.txt')
-    print(graph.edmonds_karp('s', 't'))
+    print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp('s', 't')}") # Debe ser 72
+    graph = Graph('./graph_examples/example_02.txt') # Debe ser 19
+    print(f"El flujo maximo del grafo 2 es de: {graph.edmonds_karp('s', 't')}")
