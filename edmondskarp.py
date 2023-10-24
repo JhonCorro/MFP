@@ -1,3 +1,4 @@
+from math import floor, log
 class Graph:
     """
     A class representing a graph.
@@ -14,6 +15,7 @@ class Graph:
     - build_graph_from_matrix(self, path): builds a graph from a matrix
     - breath_first_search(self, source, target): performs a breath first search on the graph
     - edmonds_karp(self, source, target): performs the Edmonds-Karp algorithm on the graph
+    - __str__(self): returns a string representation of the graph
     """
 
     def __init__(self, matrix_path=None):
@@ -34,7 +36,7 @@ class Graph:
         Adds a vertex to the graph.
 
         Args:
-        - vertex (str): the name of the vertex to add
+        - vertex (int): the name of the vertex to add
         """
         self.vertices.append({'name': vertex, 'neighbours': []})
 
@@ -43,30 +45,28 @@ class Graph:
         Adds a neighbour to a vertex in the graph.
 
         Args:
-        - vertex (str): the name of the vertex to add the neighbour to
-        - neighbour (str): the name of the neighbour to add
+        - vertex (int): the name of the vertex to add the neighbour to
+        - neighbour (int): the name of the neighbour to add
         """
         [v['neighbours'].append(neighbour) for v in self.vertices if v['name'] == vertex]
 
-    def add_edge(self, source, target, capacity, flow=0):
+    def add_edge(self, source, target, capacity, flow=0, backward=False):
         """
         Adds an edge to the graph.
 
         Args:
-        - source (str): the name of the source vertex
-        - target (str): the name of the target vertex
+        - source (int): the name of the source vertex
+        - target (int): the name of the target vertex
         - capacity (int): the capacity of the edge
         - flow (int): the flow of the edge (default: 0)
         """
-        renamed_source = f'v_{source}' if source.isdigit() else source
-        renamed_target = f'v_{target}' if target.isdigit() else target
         if source == target: return
-        if not any(vertex['name'] == renamed_source for vertex in self.vertices):
-            self.add_vertex(renamed_source)
-        if not any(vertex['name'] == renamed_target for vertex in self.vertices):
-            self.add_vertex(renamed_target)
-        self.edges[(renamed_source, renamed_target)] = [capacity, flow]
-        self.add_neighbour(renamed_source, renamed_target)
+        if not any(vertex['name'] == source for vertex in self.vertices):
+            self.add_vertex(source)
+        if not any(vertex['name'] == target for vertex in self.vertices):
+            self.add_vertex(target)
+        self.edges[(source, target)] = [capacity, flow]
+        if not backward: self.add_neighbour(source, target)
 
     def build_graph_from_matrix(self, path):
         """
@@ -76,20 +76,24 @@ class Graph:
         - path (str): the path to the matrix file
         """
         with open(path, 'r', encoding='utf-8') as f:
-            names = [f'v_{name.strip()}' if name.strip().isdigit() else name.strip() for name in f.readline().split(',')]
             matrix = [list(map(int, lines.split(','))) for lines in f.readlines()]
 
-        list(map(self.add_vertex, names))
-        edges = [(names[i], names[j], c) for i, row in enumerate(matrix) for j, c in enumerate(row)] # if c > 0]
-        list(map(lambda edge: self.add_edge(*edge), edges))
+        names = [i for i in range(len(matrix))]
 
+        list(map(self.add_vertex, names))
+        edges = [(names[i], names[j], c) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
+        list(map(lambda edge: self.add_edge(*edge), edges))
+        backward_edges = [(names[j], names[i], 0) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
+        list(map(lambda edge: self.add_edge(*edge, backward=True), backward_edges))
+
+    # TODO: Modify to search for augmented paths with minimun capacity I
     def breath_first_search(self, source, target):
         """
         Performs a breath first search on the graph.
 
         Args:
-        - source (str): the name of the source vertex
-        - target (str): the name of the target vertex
+        - source (int): the name of the source vertex
+        - target (int): the name of the target vertex
 
         Returns:
         - path (list): the path from the source to the target
@@ -116,8 +120,8 @@ class Graph:
         Performs the Edmonds-Karp algorithm on the graph.
 
         Args:
-        - source (str): the name of the source vertex
-        - target (str): the name of the target vertex
+        - source (int): the name of the source vertex
+        - target (int): the name of the target vertex
 
         Returns:
         - max_flow (int): the maximum flow of the graph
@@ -129,8 +133,9 @@ class Graph:
                 break
             flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
             for i in range(len(path) - 1):
-                self.edges[(path[i], path[i+1])][1] += flow
-                self.edges[(path[i+1], path[i])][1] -= flow
+                u, v = path[i], path[i+1]
+                self.edges[(u, v)][1] += flow
+                self.edges[(v, u)][1] -= flow
             max_flow += flow
             print(path)
         return max_flow
@@ -144,6 +149,8 @@ class Graph:
 
 if __name__ == '__main__':
     graph = Graph('./graph_examples/example_01.txt')
-    print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp('s', 't')}") # Debe ser 72
+    print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp(0, 8)}") # Debe ser 72
     graph = Graph('./graph_examples/example_02.txt') # Debe ser 19
-    print(f"El flujo maximo del grafo 2 es de: {graph.edmonds_karp('s', 't')}")
+    print(f"El flujo maximo del grafo 2 es de: {graph.edmonds_karp(0, 5)}")
+    graph = Graph('./graph_examples/example_03.txt') # Debe ser 15
+    print(f"El flujo maximo del grafo 3 es de: {graph.edmonds_karp(0, 5)}")
