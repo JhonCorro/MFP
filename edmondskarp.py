@@ -86,8 +86,7 @@ class Graph:
         backward_edges = [(names[j], names[i], 0) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
         list(map(lambda edge: self.add_edge(*edge, backward=True), backward_edges))
 
-    # TODO: Modify to search for augmented paths with minimun capacity I
-    def breath_first_search(self, source, target):
+    def breath_first_search(self, source, target, I):
         """
         Performs a breath first search on the graph.
 
@@ -107,7 +106,7 @@ class Graph:
             for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
                 edge_capacity = self.edges[(current_vertex, next_vertex)][0]
                 edge_flow = self.edges[(current_vertex, next_vertex)][1]
-                if not visited[next_vertex] and edge_capacity > edge_flow:
+                if not visited[next_vertex] and edge_capacity - edge_flow > I:
                     visited[next_vertex] = True
                     if next_vertex == target:
                         return path + [next_vertex]
@@ -127,10 +126,13 @@ class Graph:
         - max_flow (int): the maximum flow of the graph
         """
         max_flow = 0
-        while True:
-            path = self.breath_first_search(source, target)
+        C = max(edge[0] for edge in self.edges.values())
+        I = 3 ** floor(log(C, 3))
+        while I >= 1:
+            path = self.breath_first_search(source, target, I)
             if not path:
-                break
+                I /= 3
+                continue
             flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
             for i in range(len(path) - 1):
                 u, v = path[i], path[i+1]
