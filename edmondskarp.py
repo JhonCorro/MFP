@@ -106,7 +106,7 @@ class Graph:
             for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
                 edge_capacity = self.edges[(current_vertex, next_vertex)][0]
                 edge_flow = self.edges[(current_vertex, next_vertex)][1]
-                if not visited[next_vertex] and edge_capacity - edge_flow > I:
+                if not visited[next_vertex] and edge_capacity - edge_flow >= I:
                     visited[next_vertex] = True
                     if next_vertex == target:
                         return path + [next_vertex]
@@ -131,7 +131,7 @@ class Graph:
         while I >= 1:
             path = self.breath_first_search(source, target, I)
             if not path:
-                I /= 3
+                I //= 3
                 continue
             flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
             for i in range(len(path) - 1):
@@ -139,7 +139,6 @@ class Graph:
                 self.edges[(u, v)][1] += flow
                 self.edges[(v, u)][1] -= flow
             max_flow += flow
-            print(path)
         return max_flow
 
     def __str__(self):
