@@ -27,6 +27,7 @@ class Graph:
         """
         self.vertices = []
         self.edges = {}
+        self.targets = []
 
         if matrix_path:
             self.build_graph_from_matrix(matrix_path)
@@ -76,7 +77,9 @@ class Graph:
         - path (str): the path to the matrix file
         """
         with open(path, 'r', encoding='utf-8') as f:
-            matrix = [list(map(int, lines.split(','))) for lines in f.readlines()]
+            first_line = f.readline()
+            self.targets = list(map(lambda n: n - 1, map(int, f.readline().split())))
+            matrix = [list(map(int, lines.split())) for lines in f.readlines()]
 
         names = [i for i in range(len(matrix))]
 
@@ -86,7 +89,7 @@ class Graph:
         backward_edges = [(names[j], names[i], 0) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
         list(map(lambda edge: self.add_edge(*edge, backward=True), backward_edges))
 
-    def breath_first_search(self, source, target, I):
+    def breath_first_search(self, source, target, I=0):
         """
         Performs a breath first search on the graph.
 
@@ -104,8 +107,7 @@ class Graph:
         while queue:
             (current_vertex, path) = queue.pop(0)
             for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
-                edge_capacity = self.edges[(current_vertex, next_vertex)][0]
-                edge_flow = self.edges[(current_vertex, next_vertex)][1]
+                edge_capacity, edge_flow = self.edges[(current_vertex, next_vertex)]
                 if not visited[next_vertex] and edge_capacity - edge_flow >= I:
                     visited[next_vertex] = True
                     if next_vertex == target:
@@ -113,6 +115,19 @@ class Graph:
                     else:
                         queue.append((next_vertex, path + [next_vertex]))
         return None
+
+    def build_subgraphs(self, source, targets):
+        subgraphs = []
+        for target in targets:
+            path = self.breath_first_search(source, target)
+            if path:
+                subgraph = Graph()
+                for vertex in path:
+                    subgraph.add_vertex(vertex)
+                for i in range(len(path) - 1):
+                    subgraph.add_edge(path[i], path[i+1], self.edges[(path[i], path[i+1])][0])
+                subgraphs.append(subgraph)
+        return subgraphs
 
     def edmonds_karp(self, source, target):
         """
@@ -125,6 +140,8 @@ class Graph:
         Returns:
         - max_flow (int): the maximum flow of the graph
         """
+        for edge in self.edges.values():
+            edge[1] = 0
         max_flow = 0
         C = max(edge[0] for edge in self.edges.values())
         I = 3 ** floor(log(C, 3))
@@ -139,6 +156,7 @@ class Graph:
                 self.edges[(u, v)][1] += flow
                 self.edges[(v, u)][1] -= flow
             max_flow += flow
+            print(path)
         return max_flow
 
     def __str__(self):
@@ -155,3 +173,7 @@ if __name__ == '__main__':
     print(f"El flujo maximo del grafo 2 es de: {graph.edmonds_karp(0, 5)}")
     graph = Graph('./graph_examples/example_03.txt') # Debe ser 15
     print(f"El flujo maximo del grafo 3 es de: {graph.edmonds_karp(0, 5)}")
+    graph = Graph('./graph_examples/12grafo2fm1v3des.txt')
+    print(f"El flujo maximo del grafo 12grafo2fm1v3des desde 0 hasta {graph.targets[0]} es de: {graph.edmonds_karp(0, graph.targets[0])}")
+    print(f"El flujo maximo del grafo 12grafo2fm1v3des desde 0 hasta {graph.targets[1]} es de: {graph.edmonds_karp(0, graph.targets[1])}")
+    print(f"El flujo maximo del grafo 12grafo2fm1v3des desde 0 hasta {graph.targets[2]} es de: {graph.edmonds_karp(0, graph.targets[2])}")
