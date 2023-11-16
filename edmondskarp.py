@@ -14,6 +14,8 @@ class Graph:
     - add_edge(self, source, target, capacity): adds an edge to the graph
     - build_graph_from_matrix(self, path): builds a graph from a matrix
     - breath_first_search(self, source, target): performs a breath first search on the graph
+    - build_subgraph(self, paths): builds a subgraph matrix based on the given paths
+    - build_multicast_graph(self, matrices): builds a multicast graph matrix based on the given matrices
     - edmonds_karp(self, source, target): performs the Edmonds-Karp algorithm on the graph
     - __str__(self): returns a string representation of the graph
     """
@@ -77,7 +79,7 @@ class Graph:
         - path (str): the path to the matrix file
         """
         with open(path, 'r', encoding='utf-8') as f:
-            first_line = f.readline()
+            _ = f.readline()
             self.targets = list(map(lambda n: n - 1, map(int, f.readline().split())))
             matrix = [list(map(int, lines.split())) for lines in f.readlines()]
 
@@ -108,7 +110,8 @@ class Graph:
             (current_vertex, path) = queue.pop(0)
             for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
                 edge_capacity, edge_flow = self.edges[(current_vertex, next_vertex)]
-                if not visited[next_vertex] and edge_capacity - edge_flow >= I:
+                residual_capacity = edge_capacity - edge_flow
+                if not visited[next_vertex] and residual_capacity >= I:
                     visited[next_vertex] = True
                     if next_vertex == target:
                         return path + [next_vertex]
@@ -116,19 +119,37 @@ class Graph:
                         queue.append((next_vertex, path + [next_vertex]))
         return None
 
-    def build_subgraphs(self, source, targets):
-        subgraphs = []
-        for target in targets:
-            path = self.breath_first_search(source, target)
-            if path:
-                subgraph = Graph()
-                for vertex in path:
-                    subgraph.add_vertex(vertex)
-                for i in range(len(path) - 1):
-                    subgraph.add_edge(path[i], path[i+1], self.edges[(path[i], path[i+1])][0])
-                subgraphs.append(subgraph)
-        return subgraphs
+    def build_subgraph(self, paths):
+            """
+            Builds a subgraph matrix based on the given paths.
 
+            Args:
+                paths (list): A list of paths.
+
+            Returns:
+                list: A subgraph matrix.
+            """
+            V = len(self.vertices)
+            subgraph_matrix = [[0 for _ in range(V)] for _ in range(V)]
+            for path in paths:
+                for i in range(len(path) - 1):
+                    u, v = path[i], path[i+1]
+                    subgraph_matrix[u][v] = self.edges[(u, v)][0]
+            return subgraph_matrix
+
+    def build_multicast_graph(self, matrices):
+        """
+        Builds a multicast graph from a list of matrices.
+
+        Args:
+            matrices (List[List[int]]): A list of matrices.
+
+        Returns:
+            List[List[int]]: The multicast graph.
+        """
+        return [[sum(row) for row in zip(*matrix)] for matrix in zip(*matrices)]
+
+    # TODO: Modified Edmonds-Karp algorithm is finding more paths than it should. Fix it.
     def edmonds_karp(self, source, target):
         """
         Performs the Edmonds-Karp algorithm on the graph.
@@ -140,24 +161,39 @@ class Graph:
         Returns:
         - max_flow (int): the maximum flow of the graph
         """
+        with open('logs.txt', 'a', encoding='utf-8') as f:
+            f.write(f'Subgraph with s: {source} and t: {target}\n')
         for edge in self.edges.values():
             edge[1] = 0
+        subgraph = []
         max_flow = 0
         C = max(edge[0] for edge in self.edges.values())
         I = 3 ** floor(log(C, 3))
+        iteration = 0
         while I >= 1:
             path = self.breath_first_search(source, target, I)
             if not path:
                 I //= 3
                 continue
+            subgraph.append(path)
             flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
             for i in range(len(path) - 1):
                 u, v = path[i], path[i+1]
                 self.edges[(u, v)][1] += flow
                 self.edges[(v, u)][1] -= flow
             max_flow += flow
-            print(path)
-        return max_flow
+            iteration += 1
+            with open('logs.txt', 'a', encoding='utf-8') as f:
+                f.write(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}\n')
+            print(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}')
+        log_mat = self.build_subgraph(subgraph)
+        with open('logs.txt', 'a', encoding='utf-8') as f:
+            # write matrix in a human readable way
+            f.write('Subgraph with s: {source} and t: {target} matrix:\n')
+            for row in log_mat:
+                f.write(f'{row}\n')
+            f.write('\n')
+        return max_flow, subgraph
 
     def __str__(self):
         """
@@ -167,13 +203,20 @@ class Graph:
 
 
 if __name__ == '__main__':
-    graph = Graph('./graph_examples/example_01.txt')
-    print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp(0, 8)}") # Debe ser 72
-    graph = Graph('./graph_examples/example_02.txt') # Debe ser 19
-    print(f"El flujo maximo del grafo 2 es de: {graph.edmonds_karp(0, 5)}")
-    graph = Graph('./graph_examples/example_03.txt') # Debe ser 15
-    print(f"El flujo maximo del grafo 3 es de: {graph.edmonds_karp(0, 5)}")
-    graph = Graph('./graph_examples/12grafo2fm1v3des.txt')
-    print(f"El flujo maximo del grafo 12grafo2fm1v3des desde 0 hasta {graph.targets[0]} es de: {graph.edmonds_karp(0, graph.targets[0])}")
-    print(f"El flujo maximo del grafo 12grafo2fm1v3des desde 0 hasta {graph.targets[1]} es de: {graph.edmonds_karp(0, graph.targets[1])}")
-    print(f"El flujo maximo del grafo 12grafo2fm1v3des desde 0 hasta {graph.targets[2]} es de: {graph.edmonds_karp(0, graph.targets[2])}")
+    # graph = Graph('./graph_examples/example_01.txt')
+    # print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp(0, 8)}") # Debe ser 72
+    test_graph = Graph('./graph_examples/12grafo2fm1v3des.txt')
+    with open('logs.txt', 'w', encoding='utf-8') as f:
+            f.write('Modified Edmonds-Karp Algorithm\n\n')
+    max_flows, subgraphs = [], []
+    for target in test_graph.targets:
+        mf, subgraph = test_graph.edmonds_karp(0, target)
+        max_flows.append(mf)
+        subgraphs.append(test_graph.build_subgraph(subgraph))
+    multicast_graph = test_graph.build_multicast_graph(subgraphs)
+    with open('logs.txt', 'a', encoding='utf-8') as f:
+        f.write('Mulcast Graph Matrix\n')
+        for row in multicast_graph:
+            f.write(f'{row}\n')
+    min_max_flow = min(max_flows)
+    print(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}')
