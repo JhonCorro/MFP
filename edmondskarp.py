@@ -1,4 +1,5 @@
 from math import floor, log
+import random
 class Graph:
     """
     A class representing a graph.
@@ -149,6 +150,43 @@ class Graph:
         """
         return [[sum(row) for row in zip(*matrix)] for matrix in zip(*matrices)]
 
+    def deleteFirstPath(self, paths):
+        """
+        Deletes the first path of the list.
+
+        Args:
+            paths (list): A list of paths.
+
+        Returns:
+            list: A list of paths without the first path.
+        """
+        return paths[1:]
+
+    def deleteLongestPath(self, paths):
+        """
+        Deletes the longest path of the list.
+
+        Args:
+            paths (list): A list of paths.
+
+        Returns:
+            list: A list of paths without the longest path.
+        """
+        return sorted(paths, key=len)[1:]
+
+    def deleteRandomPath(self, paths):
+        """
+        Deletes a random path of the list.
+
+        Args:
+            paths (list): A list of paths.
+
+        Returns:
+            list: A list of paths without a random path.
+        """
+        random.shuffle(paths)
+        return paths[1:]
+
     # TODO: Modified Edmonds-Karp algorithm is finding more paths than it should. Fix it.
     def edmonds_karp(self, source, target):
         """
@@ -189,7 +227,7 @@ class Graph:
         log_mat = self.build_subgraph(subgraph)
         with open('logs.txt', 'a', encoding='utf-8') as f:
             # write matrix in a human readable way
-            f.write('Subgraph with s: {source} and t: {target} matrix:\n')
+            f.write(f'Subgraph with s: {source} and t: {target} matrix:\n')
             for row in log_mat:
                 f.write(f'{row}\n')
             f.write('\n')
