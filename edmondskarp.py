@@ -151,7 +151,8 @@ class Graph:
         Returns:
             List[List[int]]: The multicast graph.
         """
-        return [[sum(row) for row in zip(*matrix)] for matrix in zip(*matrices)]
+        V = len(self.vertices)
+        return [[max(matrix[i][j] for matrix in matrices) for j in range(V)] for i in range(V)]
 
     def deleteFirstPath(self, paths):
         """
@@ -189,6 +190,26 @@ class Graph:
         """
         random.shuffle(paths)
         return paths[1:]
+
+    def orchestrateDeletion(self, paths, method):
+        """
+        Orchestrates the deletion of a path.
+
+        Args:
+            paths (list): A list of paths.
+            method (str): The method to use for deletion.
+
+        Returns:
+            list: A list of paths without a path.
+        """
+        if method == 'first':
+            return self.deleteFirstPath(paths)
+        elif method == 'longest':
+            return self.deleteLongestPath(paths)
+        elif method == 'random':
+            return self.deleteRandomPath(paths)
+        else:
+            return paths
 
     # TODO: Modified Edmonds-Karp algorithm is finding more paths than it should. Fix it.
     def edmonds_karp(self, source, target):
@@ -254,10 +275,14 @@ if __name__ == '__main__':
         mf, subgraph = test_graph.edmonds_karp(0, target)
         max_flows.append(mf)
         subgraphs.append(test_graph.build_subgraph(subgraph))
+    min_max_flow = min(max_flows)
+    print(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}')
+    for subgraph in subgraphs:
+        if len(subgraphs) > min_max_flow:
+            subgraph = test_graph.orchestrateDeletion(subgraph, 'first')
     multicast_graph = test_graph.build_multicast_graph(subgraphs)
     with open('logs.txt', 'a', encoding='utf-8') as f:
+        f.write(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}\n')
         f.write('Multicast Graph Matrix\n')
         for row in multicast_graph:
             f.write(f'{row}\n')
-    min_max_flow = min(max_flows)
-    print(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}')
