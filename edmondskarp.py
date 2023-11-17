@@ -151,8 +151,7 @@ class Graph:
         Returns:
             List[List[int]]: The multicast graph.
         """
-        V = len(self.vertices)
-        return [[max(matrix[i][j] for matrix in matrices) for j in range(V)] for i in range(V)]
+        return [[max(row) for row in zip(*matrix)] for matrix in zip(*matrices)]
 
     def deleteFirstPath(self, paths):
         """
