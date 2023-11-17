@@ -17,6 +17,9 @@ class Graph:
     - breath_first_search(self, source, target): performs a breath first search on the graph
     - build_subgraph(self, paths): builds a subgraph matrix based on the given paths
     - build_multicast_graph(self, matrices): builds a multicast graph matrix based on the given matrices
+    - deleteFirstPath(self, paths): deletes the first path of the list
+    - deleteLongestPath(self, paths): deletes the longest path of the list
+    - deleteRandomPath(self, paths): deletes a random path of the list
     - edmonds_karp(self, source, target): performs the Edmonds-Karp algorithm on the graph
     - __str__(self): returns a string representation of the graph
     """
@@ -253,7 +256,7 @@ if __name__ == '__main__':
         subgraphs.append(test_graph.build_subgraph(subgraph))
     multicast_graph = test_graph.build_multicast_graph(subgraphs)
     with open('logs.txt', 'a', encoding='utf-8') as f:
-        f.write('Mulcast Graph Matrix\n')
+        f.write('Multicast Graph Matrix\n')
         for row in multicast_graph:
             f.write(f'{row}\n')
     min_max_flow = min(max_flows)
