@@ -5,14 +5,16 @@ class Graph:
     A class representing a graph.
 
     Attributes:
+    - matrix: a matrix representing the graph
     - vertex: a list of vertices in the graph
     - edge: a dictionary representing the edges in the graph
+    - target: a list of target vertices in the graph
 
     Methods:
     - __init__(self, matrix_path=None): initializes the Graph object
     - add_vertex(self, vertex): adds a vertex to the graph
     - add_neighbour(self, vertex, neighbour): adds a neighbour to a vertex in the graph
-    - add_edge(self, source, target, capacity): adds an edge to the graph
+    - add_edge(self, source, target, capacity, flow=0, backward=False): adds an edge to the graph
     - build_graph_from_matrix(self, path): builds a graph from a matrix
     - breath_first_search(self, source, target): performs a breath first search on the graph
     - build_subgraph(self, paths): builds a subgraph matrix based on the given paths
@@ -31,8 +33,9 @@ class Graph:
         Args:
         - matrix_path (str): the path to the matrix file (default: None)
         """
+        self.matrix = []
         self.vertices = []
-        self.edges = {}
+        self.edges = []
         self.targets = []
 
         if matrix_path:
@@ -55,7 +58,7 @@ class Graph:
         - vertex (int): the name of the vertex to add the neighbour to
         - neighbour (int): the name of the neighbour to add
         """
-        [v['neighbours'].append(neighbour) for v in self.vertices if v['name'] == vertex]
+        self.vertices[vertex]['neighbours'].append(neighbour)
 
     def add_edge(self, source, target, capacity, flow=0, backward=False):
         """
@@ -66,13 +69,14 @@ class Graph:
         - target (int): the name of the target vertex
         - capacity (int): the capacity of the edge
         - flow (int): the flow of the edge (default: 0)
+        - backward (bool): whether the edge is backward or not (default: False)
         """
         if source == target: return
         if not any(vertex['name'] == source for vertex in self.vertices):
             self.add_vertex(source)
         if not any(vertex['name'] == target for vertex in self.vertices):
             self.add_vertex(target)
-        self.edges[(source, target)] = [capacity, flow]
+        self.edges.append({'source': source, 'target': target, 'capacity': capacity, 'flow': flow})
         if not backward: self.add_neighbour(source, target)
 
     def build_graph_from_matrix(self, path):
@@ -85,14 +89,14 @@ class Graph:
         with open(path, 'r', encoding='utf-8') as f:
             _ = f.readline()
             self.targets = list(map(lambda n: n - 1, map(int, f.readline().split())))
-            matrix = [list(map(int, lines.split())) for lines in f.readlines()]
+            self.matrix = [list(map(int, lines.split())) for lines in f.readlines()]
 
-        names = [i for i in range(len(matrix))]
+        names = [i for i in range(len(self.matrix))]
 
         list(map(self.add_vertex, names))
-        edges = [(names[i], names[j], c) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
+        edges = [(names[i], names[j], c) for i, row in enumerate(self.matrix) for j, c in enumerate(row) if c > 0]
         list(map(lambda edge: self.add_edge(*edge), edges))
-        backward_edges = [(names[j], names[i], 0) for i, row in enumerate(matrix) for j, c in enumerate(row) if c > 0]
+        backward_edges = [(names[j], names[i], 0) for i, row in enumerate(self.matrix) for j, c in enumerate(row) if c > 0]
         list(map(lambda edge: self.add_edge(*edge, backward=True), backward_edges))
 
     def breath_first_search(self, source, target, I=0):
@@ -113,7 +117,8 @@ class Graph:
         while queue:
             (current_vertex, path) = queue.pop(0)
             for next_vertex in set(next(vertex for vertex in self.vertices if vertex['name'] == current_vertex)['neighbours']) - set(path):
-                edge_capacity, edge_flow = self.edges[(current_vertex, next_vertex)]
+                edge = next(edge for edge in self.edges if edge['source'] == current_vertex and edge['target'] == next_vertex)
+                edge_capacity, edge_flow = edge['capacity'], edge['flow']
                 residual_capacity = edge_capacity - edge_flow
                 if not visited[next_vertex] and residual_capacity >= I:
                     visited[next_vertex] = True
@@ -138,7 +143,8 @@ class Graph:
             for path in paths:
                 for i in range(len(path) - 1):
                     u, v = path[i], path[i+1]
-                    subgraph_matrix[u][v] = self.edges[(u, v)][0]
+                    edge = next(edge for edge in self.edges if edge['source'] == u and edge['target'] == v)
+                    subgraph_matrix[u][v] = edge['capacity']
             return subgraph_matrix
 
     def build_multicast_graph(self, matrices):
@@ -224,11 +230,11 @@ class Graph:
         """
         with open('logs.txt', 'a', encoding='utf-8') as f:
             f.write(f'Subgraph with s: {source} and t: {target}\n')
-        for edge in self.edges.values():
-            edge[1] = 0
+        for edge in self.edges:
+            edge['flow'] = 0
         subgraph = []
         max_flow = 0
-        C = max(edge[0] for edge in self.edges.values())
+        C = (lambda: max([edge['capacity'] for edge in self.edges]))()
         I = 3 ** floor(log(C, 3))
         iteration = 0
         while I >= 1:
@@ -237,11 +243,18 @@ class Graph:
                 I //= 3
                 continue
             subgraph.append(path)
-            flow = min(self.edges[(path[i], path[i+1])][0] - self.edges[(path[i], path[i+1])][1] for i in range(len(path) - 1))
+            residual_capacity = []
             for i in range(len(path) - 1):
                 u, v = path[i], path[i+1]
-                self.edges[(u, v)][1] += flow
-                self.edges[(v, u)][1] -= flow
+                edge = next(edge for edge in self.edges if edge['source'] == u and edge['target'] == v)
+                residual_capacity.append(edge['capacity'] - edge['flow'])
+            flow = min(residual_capacity)
+            for i in range(len(path) - 1):
+                u, v = path[i], path[i+1]
+                edge = next(edge for edge in self.edges if edge['source'] == u and edge['target'] == v)
+                backward_edge = next(edge for edge in self.edges if edge['source'] == v and edge['target'] == u)
+                edge['flow'] += flow
+                backward_edge['flow'] -= flow
             max_flow += flow
             iteration += 1
             with open('logs.txt', 'a', encoding='utf-8') as f:
