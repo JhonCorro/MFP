@@ -19,9 +19,9 @@ class Graph:
     - breath_first_search(self, source, target): performs a breath first search on the graph
     - build_subgraph(self, paths): builds a subgraph matrix based on the given paths
     - build_multicast_graph(self, matrices): builds a multicast graph matrix based on the given matrices
-    - deleteFirstPath(self, paths): deletes the first path of the list
-    - deleteLongestPath(self, paths): deletes the longest path of the list
-    - deleteRandomPath(self, paths): deletes a random path of the list
+    - delete_first_path(self, paths): deletes the first path of the list
+    - delete_longest_path(self, paths): deletes the longest path of the list
+    - delete_random_path(self, paths): deletes a random path of the list
     - edmonds_karp(self, source, target): performs the Edmonds-Karp algorithm on the graph
     - __str__(self): returns a string representation of the graph
     """
@@ -159,7 +159,7 @@ class Graph:
         """
         return [[max(row) for row in zip(*matrix)] for matrix in zip(*matrices)]
 
-    def deleteFirstPath(self, paths):
+    def delete_first_path(self, paths):
         """
         Deletes the first path of the list.
 
@@ -171,7 +171,7 @@ class Graph:
         """
         return paths[1:]
 
-    def deleteLongestPath(self, paths):
+    def delete_longest_path(self, paths):
         """
         Deletes the longest path of the list.
 
@@ -183,7 +183,7 @@ class Graph:
         """
         return sorted(paths, key=len)[1:]
 
-    def deleteRandomPath(self, paths):
+    def delete_random_path(self, paths):
         """
         Deletes a random path of the list.
 
@@ -208,11 +208,11 @@ class Graph:
             list: A list of paths without a path.
         """
         if method == 'first':
-            return self.deleteFirstPath(paths)
+            return self.delete_first_path(paths)
         elif method == 'longest':
-            return self.deleteLongestPath(paths)
+            return self.delete_longest_path(paths)
         elif method == 'random':
-            return self.deleteRandomPath(paths)
+            return self.delete_random_path(paths)
         else:
             return paths
 
@@ -262,7 +262,6 @@ class Graph:
             print(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}')
         log_mat = self.build_subgraph(subgraph)
         with open('logs.txt', 'a', encoding='utf-8') as f:
-            # write matrix in a human readable way
             f.write(f'Subgraph with s: {source} and t: {target} matrix:\n')
             for row in log_mat:
                 f.write(f'{row}\n')
