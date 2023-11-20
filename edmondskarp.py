@@ -196,7 +196,7 @@ class Graph:
         random.shuffle(paths)
         return paths[1:]
 
-    def orchestrateDeletion(self, paths, method):
+    def orchestrate_deletion(self, paths, method):
         """
         Orchestrates the deletion of a path.
 
@@ -290,7 +290,7 @@ if __name__ == '__main__':
     print(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}')
     for subgraph in subgraphs:
         if len(subgraphs) > min_max_flow:
-            subgraph = test_graph.orchestrateDeletion(subgraph, 'first')
+            subgraph = test_graph.orchestrate_deletion(subgraph, 'first')
     multicast_graph = test_graph.build_multicast_graph(subgraphs)
     with open('logs.txt', 'a', encoding='utf-8') as f:
         f.write(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}\n')
