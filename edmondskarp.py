@@ -234,7 +234,7 @@ class Graph:
             edge['flow'] = 0
         subgraph = []
         max_flow = 0
-        C = (lambda: max([edge['capacity'] for edge in self.edges]))()
+        C = max([edge['capacity'] for edge in self.edges])
         I = 3 ** floor(log(C, 3))
         iteration = 0
         while I >= 1:
