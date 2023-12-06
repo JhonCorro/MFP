@@ -1,5 +1,6 @@
 from math import floor, log
 import random
+
 class Graph:
     """
     A class representing a graph.
@@ -159,6 +160,19 @@ class Graph:
         """
         return [[max(row) for row in zip(*matrix)] for matrix in zip(*matrices)]
 
+    def multicast_graph_to_file(self, name, matrix, mmf):
+        """
+        Saves the multicast graph to a file.
+
+        Args:
+            matrix (List[List[int]]): The multicast graph.
+        """
+        with open(f'multicast_graphs/{name}.txt', 'w', encoding='utf-8') as f:
+            f.write(f'{len(matrix)} {mmf} {len(self.targets)}\n')
+            f.write(f'{" ".join(map(str, self.targets))}\n')
+            for row in matrix:
+                f.write(f'{" ".join(map(str, row))}\n')
+
     def delete_first_path(self, paths):
         """
         Deletes the first path of the list.
@@ -273,27 +287,3 @@ class Graph:
         Returns a string representation of the graph.
         """
         return f'Vertices: {self.vertices}\nEdges: {self.edges}'
-
-
-if __name__ == '__main__':
-    # graph = Graph('./graph_examples/example_01.txt')
-    # print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp(0, 8)}") # Debe ser 72
-    test_graph = Graph('./graph_examples/12grafo2fm1v3des.txt')
-    with open('logs.txt', 'w', encoding='utf-8') as f:
-            f.write('Modified Edmonds-Karp Algorithm\n\n')
-    max_flows, subgraphs = [], []
-    for target in test_graph.targets:
-        mf, subgraph = test_graph.edmonds_karp(0, target)
-        max_flows.append(mf)
-        subgraphs.append(test_graph.build_subgraph(subgraph))
-    min_max_flow = min(max_flows)
-    print(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}')
-    for subgraph in subgraphs:
-        if len(subgraphs) > min_max_flow:
-            subgraph = test_graph.orchestrate_deletion(subgraph, 'first')
-    multicast_graph = test_graph.build_multicast_graph(subgraphs)
-    with open('logs.txt', 'a', encoding='utf-8') as f:
-        f.write(f'Flujos maximos: {max_flows}, minimo flujo maximo: {min_max_flow}\n')
-        f.write('Multicast Graph Matrix\n')
-        for row in multicast_graph:
-            f.write(f'{row}\n')
