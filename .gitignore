@@ -189,5 +189,7 @@ pip-selfcheck.json
 ### Modified Edmonds-Karp ###
 # Ignore everything starting with log
 log*.txt
+# Output directory
+multicast_graphs/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,venv
