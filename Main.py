@@ -13,10 +13,10 @@ if __name__ == '__main__':
         max_flows.append(mf)
         subgraphs.append(subgraph)
     min_max_flow = min(max_flows)
-    print(f'Maximun flows: {max_flows}, minimal maximun flow: {min_max_flow}')
     with open('logs.txt', 'a', encoding='utf-8') as f:
         f.write(f'Maximun flows: {max_flows}, minimal maximun flow: {min_max_flow}\n\n')
         f.write("Deletion Methods\n\n")
+
     f_subgraphs = deepcopy(subgraphs)
     l_subgraphs = deepcopy(subgraphs)
     r_subgraphs = deepcopy(subgraphs)
@@ -24,7 +24,6 @@ if __name__ == '__main__':
         if max_flows[i] > min_max_flow:
             f_subgraphs[i] = test_graph.orchestrate_deletion(subgraph, 'first')
             d_first_path_subgraph = list(map(test_graph.build_subgraph, f_subgraphs))
-            # d_first_path_subgraph = test_graph.build_subgraph(f_subgraphs)
             with open('logs.txt', 'a', encoding='utf-8') as f:
                 f.write(f'Subgraph with s: {0} and t: {test_graph.targets[i]} after first path deletion:\n')
                 for row in d_first_path_subgraph[i]:
@@ -44,7 +43,7 @@ if __name__ == '__main__':
                 for row in d_random_path_subgraph[i]:
                     f.write(f'{row}\n')
                 f.write('\n')
-    # TODO: Save multicast graph to text file with the testing app format
+
     d_first_path_multicast_graph = test_graph.build_multicast_graph(d_first_path_subgraph)
     d_longest_path_multicast_graph = test_graph.build_multicast_graph(d_longest_path_subgraph)
     d_random_path_multicast_graph = test_graph.build_multicast_graph(d_random_path_subgraph)
