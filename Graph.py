@@ -231,7 +231,7 @@ class Graph:
             return paths
 
     # TODO: Modified Edmonds-Karp algorithm is finding more paths than it should. Fix it.
-    def edmonds_karp(self, source, target):
+    def edmonds_karp(self, source, target, name):
         """
         Performs the Edmonds-Karp algorithm on the graph.
 
@@ -242,7 +242,7 @@ class Graph:
         Returns:
         - max_flow (int): the maximum flow of the graph
         """
-        with open('logs.txt', 'a', encoding='utf-8') as f:
+        with open(f'logs/{name}.txt', 'a', encoding='utf-8') as f:
             f.write(f'Subgraph with s: {source} and t: {target}\n')
         for edge in self.edges:
             edge['flow'] = 0
@@ -271,11 +271,11 @@ class Graph:
                 backward_edge['flow'] -= flow
             max_flow += flow
             iteration += 1
-            with open('logs.txt', 'a', encoding='utf-8') as f:
+            with open(f'logs/{name}.txt', 'a', encoding='utf-8') as f:
                 f.write(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}\n')
             print(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}')
         log_mat = self.build_subgraph(subgraph)
-        with open('logs.txt', 'a', encoding='utf-8') as f:
+        with open(f'logs/{name}.txt', 'a', encoding='utf-8') as f:
             f.write(f'Subgraph with s: {source} and t: {target} matrix:\n')
             for row in log_mat:
                 f.write(f'{row}\n')
