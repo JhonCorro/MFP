@@ -13,12 +13,17 @@ def get_cli_args():
 
 def make_report(path):
     with open('report.csv', 'w') as report:
-        report.write('Grafo;Metodo de eliminacion;Solucion\n')
+        report.write('Grafo;Metodo de eliminacion;Solucion;TieneSolucion?\n')
         for file in path.iterdir():
             graph_name, elimination_method, solution = file.name.replace('.out', '').split('-')[:-1]
             solution = 'Simple' if solution == 'sim' else 'Combinado'
-            print(f'{graph};{elimination_method};{solution}')
-            report.write(f'{graph_name};{elimination_method};{solution}\n')
+            new_line = f'{graph_name};{elimination_method};{solution};'
+            with open(file, 'r') as f:
+                for line in f:
+                    if 'ok' in line:
+                        new_line += 'o'
+                        break
+                report.write(new_line + '\n')
 
 if __name__ == '__main__':
     args = get_cli_args()
@@ -28,22 +33,28 @@ if __name__ == '__main__':
     OUTPUT_DIR = Path('solver_output')
 
     os.chdir(INPUT_DIR)
-    shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
+    # shutil.rmtree(OUTPUT_DIR, ignore_errors=True)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    options = [['1', '0'], ['1', '1']]
+    # options = [['1', '0'], ['1', '1']]
 
-    multicast_graph_files = [f.name for f in Path('.').iterdir() if f.is_file() and f.suffix == '.txt']
-    for graph in multicast_graph_files:
-        for option in options:
-            inputs = [graph, *option]
-            process = subprocess.Popen([SOLVER_NAME], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate(input='\n'.join(inputs).encode())
+    # print('Running solver...')
 
-            if process.returncode != 0:
-                print(f"Error executing command: {stderr.decode()}")
+    # multicast_graph_files = [f.name for f in Path('.').iterdir() if f.is_file() and f.suffix == '.txt']
+    # for graph in multicast_graph_files:
+    #     for option in options:
+    #         inputs = [graph, *option]
+    #         process = subprocess.Popen([SOLVER_NAME], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #         stdout, stderr = process.communicate(input='\n'.join(inputs).encode())
 
-    output_files = [f for f in Path('.').iterdir() if f.is_file() and f.suffix == '.out']
-    list(map(lambda file: shutil.move(file, OUTPUT_DIR / file.name.replace('.txt', '')), output_files))
+    #         if process.returncode != 0:
+    #             print(f"Error executing command: {stderr.decode()}")
 
+    # print('Solver finished!')
+
+    # output_files = [f for f in Path('.').iterdir() if f.is_file() and f.suffix == '.out']
+    # list(map(lambda file: shutil.move(file, OUTPUT_DIR / file.name.replace('.txt', '')), output_files))
+
+    print('Writing report...')
     make_report(OUTPUT_DIR)
+    print('Report written successfully!')
