@@ -82,9 +82,9 @@ if __name__ == '__main__':
             d_longest_path_multicast_graph = multicast_graph(graph[1], l_subgraph, 'longest', graph[0])
             d_random_path_multicast_graph = multicast_graph(graph[1], r_subgraph, 'random', graph[0])
 
-            graph[1].multicast_graph_to_file(f'{graph[0]}-Primer camino', d_first_path_multicast_graph, min_max_flow)
-            graph[1].multicast_graph_to_file(f'{graph[0]}-Camino mas largo', d_longest_path_multicast_graph, min_max_flow)
-            graph[1].multicast_graph_to_file(f'{graph[0]}-Camino aleatorio', d_random_path_multicast_graph, min_max_flow)
+            graph[1].multicast_graph_to_file(f'{graph[0]}-PrimerCamino', d_first_path_multicast_graph, min_max_flow)
+            graph[1].multicast_graph_to_file(f'{graph[0]}-CaminoMasLargo', d_longest_path_multicast_graph, min_max_flow)
+            graph[1].multicast_graph_to_file(f'{graph[0]}-CaminoAleatorio', d_random_path_multicast_graph, min_max_flow)
         else:
             no_del_multicast_graph = graph[1].build_multicast_graph(list(map(graph[1].build_subgraph, subgraphs)))
             with open(f'{logs_path/graph[0]}.txt', 'a', encoding='utf-8') as f:
@@ -93,5 +93,5 @@ if __name__ == '__main__':
                 for row in no_del_multicast_graph:
                     f.write(f'{row}\n')
                 f.write('\n')
-            graph[1].multicast_graph_to_file(f'{graph[0]}-No aplica', no_del_multicast_graph, min_max_flow)
+            graph[1].multicast_graph_to_file(f'{graph[0]}-NoAplica', no_del_multicast_graph, min_max_flow)
         print(f"Graph {graph[0]} finished!")
