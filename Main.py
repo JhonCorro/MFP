@@ -9,31 +9,31 @@ def get_graph_files(dir):
 
 def run_edmonds_karp(graph):
     max_flows, subgraphs = [], []
-    for target in graph.targets:
-        mf, subgraph = graph.edmonds_karp(0, target)
+    for target in graph[1].targets:
+        mf, subgraph = graph[1].edmonds_karp(0, target, graph[0])
         max_flows.append(mf)
         subgraphs.append(subgraph)
     return max_flows, subgraphs
 
-def delete_path(g, subgraph, method):
+def delete_path(g, subgraph, method, index):
     copy = deepcopy(subgraph)
     if method == 'first':
-        prunned_subgraph = g.orchestrate_deletion(copy, 'first')
-        return g.build_subgraph(prunned_subgraph)
+        copy[index] = g.orchestrate_deletion(copy[index], 'first')
+        # return list(map(g.build_subgraph, copy))
     elif method == 'longest':
-        prunned_subgraph = g.orchestrate_deletion(copy, 'longest')
-        return g.orchestrate_deletion(copy, 'longest')
+        copy[index] = g.orchestrate_deletion(copy[index], 'longest')
+        # return list(map(g.build_subgraph, copy))
     elif method == 'random':
-        prunned_subgraph = g.orchestrate_deletion(copy, 'random')
-        return g.orchestrate_deletion(copy, 'random')
+        copy[index] = g.orchestrate_deletion(copy[index], 'random')
+    return list(map(g.build_subgraph, copy))
 
-def multicast_graph(g, subgraphs, method):
-    multicast_graph = g.build_multicast_graph(list(map(g.build_subgraph, subgraphs)))
-    with open('logs.txt', 'a', encoding='utf-8') as f:
-        f.write('Multicast Graphs\n\n')
+def multicast_graph(g, subgraphs, method, name):
+    multicast_graph = g.build_multicast_graph(subgraphs)
+    with open(f'logs/{name}.txt', 'a', encoding='utf-8') as f:
         f.write(f'Multicast Graph Matrix after {method} path deletion method:\n')
         for row in multicast_graph:
             f.write(f'{row}\n')
+        f.write('\n')
     return multicast_graph
 
 if __name__ == '__main__':
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     for graph in graphs:
         with open(f'{logs_path/graph[0]}.txt', 'w', encoding='utf-8') as f:
             f.write('Modified Edmonds-Karp Algorithm\n\n')
-        max_flows, subgraphs = run_edmonds_karp(graph[1])
+        max_flows, subgraphs = run_edmonds_karp(graph)
         min_max_flow = min(max_flows)
         with open(f'{logs_path/graph[0]}.txt', 'a', encoding='utf-8') as f:
             f.write(f'Maximun flows: {max_flows}, minimal maximun flow: {min_max_flow}\n\n')
@@ -57,36 +57,41 @@ if __name__ == '__main__':
         if index != -1:
             for i, subgraph in enumerate(subgraphs):
                 if max_flows[i] > min_max_flow:
-                    f_subgraph = delete_path(graph[1], subgraph, 'first')
-                    l_subgraph = delete_path(graph[1], subgraph, 'longest')
-                    r_subgraph = delete_path(graph[1], subgraph, 'random')
+                    f_subgraph = delete_path(graph[1], subgraphs, 'first', i)
+                    l_subgraph = delete_path(graph[1], subgraphs, 'longest', i)
+                    r_subgraph = delete_path(graph[1], subgraphs, 'random', i)
 
                     with open(f'{logs_path/graph[0]}.txt', 'a', encoding='utf-8') as f:
                         f.write("Deletion Methods\n\n")
                         f.write(f'Subgraph with s: {0} and t: {graph[1].targets[i]} after first path deletion:\n')
-                        for row in f_subgraph:
+                        for row in f_subgraph[i]:
                             f.write(f'{row}\n')
                         f.write('\n')
                         f.write(f'Subgraph with s: {0} and t: {graph[1].targets[i]} after longest path deletion:\n')
-                        for row in l_subgraph:
+                        for row in l_subgraph[i]:
                             f.write(f'{row}\n')
                         f.write('\n')
                         f.write(f'Subgraph with s: {0} and t: {graph[1].targets[i]} after random path deletion:\n')
-                        for row in r_subgraph:
+                        for row in r_subgraph[i]:
                             f.write(f'{row}\n')
                         f.write('\n')
-            d_first_path_multicast_graph = multicast_graph(graph[1], f_subgraph, 'first')
-            d_longest_path_multicast_graph = multicast_graph(graph[1], l_subgraph, 'longest')
-            d_random_path_multicast_graph = multicast_graph(graph[1], r_subgraph, 'random')
+
+            with open(f'{logs_path/graph[0]}.txt', 'a', encoding='utf-8') as f:
+                f.write('Multicast Graphs\n\n')
+
+            d_first_path_multicast_graph = multicast_graph(graph[1], f_subgraph, 'first', graph[0])
+            d_longest_path_multicast_graph = multicast_graph(graph[1], l_subgraph, 'longest', graph[0])
+            d_random_path_multicast_graph = multicast_graph(graph[1], r_subgraph, 'random', graph[0])
 
             graph[1].multicast_graph_to_file(f'{graph[0]}-Primer camino', d_first_path_multicast_graph, min_max_flow)
             graph[1].multicast_graph_to_file(f'{graph[0]}-Camino mas largo', d_longest_path_multicast_graph, min_max_flow)
             graph[1].multicast_graph_to_file(f'{graph[0]}-Camino aleatorio', d_random_path_multicast_graph, min_max_flow)
         else:
-            multicast_graph = graph[1].build_multicast_graph(list(map(graph[1].build_subgraph, subgraphs)))
+            no_del_multicast_graph = graph[1].build_multicast_graph(list(map(graph[1].build_subgraph, subgraphs)))
             with open(f'{logs_path/graph[0]}.txt', 'a', encoding='utf-8') as f:
                 f.write('Multicast Graphs\n\n')
                 f.write('Multicast Graph Matrix without deletion method:\n')
-                for row in multicast_graph:
+                for row in no_del_multicast_graph:
                     f.write(f'{row}\n')
-            graph[1].multicast_graph_to_file(f'{graph[0]}-No aplica', multicast_graph, min_max_flow)
+                f.write('\n')
+            graph[1].multicast_graph_to_file(f'{graph[0]}-No aplica', no_del_multicast_graph, min_max_flow)
