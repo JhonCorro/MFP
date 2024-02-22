@@ -41,7 +41,10 @@ if __name__ == '__main__':
     ignored_files = ('example_01', 'example_02', 'example_03')
     graphs = [[file.stem, Graph(file.absolute())] for file in get_graph_files('./graph_examples') if file.stem not in ignored_files]
 
+    print("Running Modified Edmonds-Karp Algorithm...")
+
     for graph in graphs:
+        print(f"Running graph {graph[0]}...")
         with open(f'{logs_path/graph[0]}.txt', 'w', encoding='utf-8') as f:
             f.write('Modified Edmonds-Karp Algorithm\n\n')
         max_flows, subgraphs = run_edmonds_karp(graph)
@@ -91,3 +94,4 @@ if __name__ == '__main__':
                     f.write(f'{row}\n')
                 f.write('\n')
             graph[1].multicast_graph_to_file(f'{graph[0]}-No aplica', no_del_multicast_graph, min_max_flow)
+        print(f"Graph {graph[0]} finished!")
