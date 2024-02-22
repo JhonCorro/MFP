@@ -187,8 +187,9 @@ pyvenv.cfg
 pip-selfcheck.json
 
 ### Modified Edmonds-Karp ###
-# Ignore everything starting with log
-log*.txt
+# Ignore log file and logs directory
+logs.txt
+logs/
 # Output directory
 multicast_graphs/
 
