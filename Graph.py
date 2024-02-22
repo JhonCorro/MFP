@@ -273,7 +273,6 @@ class Graph:
             iteration += 1
             with open(f'logs/{name}.txt', 'a', encoding='utf-8') as f:
                 f.write(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}\n')
-            print(f'I: {I}, flow: {flow}, max_flow: {max_flow}, path # {iteration}: {path}')
         log_mat = self.build_subgraph(subgraph)
         with open(f'logs/{name}.txt', 'a', encoding='utf-8') as f:
             f.write(f'Subgraph with s: {source} and t: {target} matrix:\n')
