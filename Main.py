@@ -19,10 +19,8 @@ def delete_path(g, subgraph, method, index):
     copy = deepcopy(subgraph)
     if method == 'first':
         copy[index] = g.orchestrate_deletion(copy[index], 'first')
-        # return list(map(g.build_subgraph, copy))
     elif method == 'longest':
         copy[index] = g.orchestrate_deletion(copy[index], 'longest')
-        # return list(map(g.build_subgraph, copy))
     elif method == 'random':
         copy[index] = g.orchestrate_deletion(copy[index], 'random')
     return list(map(g.build_subgraph, copy))
@@ -37,8 +35,6 @@ def multicast_graph(g, subgraphs, method, name):
     return multicast_graph
 
 if __name__ == '__main__':
-    # graph = Graph('./graph_examples/example_01.txt')
-    # print(f"El flujo maximo del grafo 1 es de: {graph.edmonds_karp(0, 8)}") # Debe ser 72
     logs_path = Path('logs')
     logs_path.mkdir(parents=True, exist_ok=True)
 
