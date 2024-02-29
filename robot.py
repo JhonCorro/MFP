@@ -41,7 +41,9 @@ if __name__ == '__main__':
     print('Running solver...')
 
     multicast_graph_files = [f.name for f in Path('.').iterdir() if f.is_file() and f.suffix == '.txt']
-    for graph in multicast_graph_files:
+    total = len(multicast_graph_files)
+    for i, graph in enumerate(multicast_graph_files):
+        print(f'Processing {i+1}/{total}...')
         for option in options:
             inputs = [graph, *option]
             process = subprocess.Popen([SOLVER_NAME], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
