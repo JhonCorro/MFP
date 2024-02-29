@@ -11,9 +11,17 @@ def get_cli_args():
     args = parser.parse_args()
     return args
 
+def coder_nodes(graph):
+    with open(graph, 'r') as f:
+        _ = f.readline()
+        targets = list(map(int, f.readline().split()))
+        matrix = [list(map(int, lines.split())) for lines in f.readlines()]
+    coders = [i for i in range(len(matrix)) if sum([matrix[j][i] for j in range(len(matrix))]) > 1 and i not in targets]
+    return len(coders)
+
 def make_report(path):
     with open('report.csv', 'w') as report:
-        report.write('Grafo;Metodo de eliminacion;Solucion;TieneSolucion?\n')
+        report.write('Grafo;Metodo de eliminacion;Solucion;TieneSolucion;NodosCodificadores\n')
         for file in path.iterdir():
             graph_name, elimination_method, solution = file.name.replace('.out', '').split('-')[:-1]
             solution = 'Simple' if solution == 'sim' else 'Combinado'
@@ -21,8 +29,9 @@ def make_report(path):
             with open(file, 'r') as f:
                 for line in f:
                     if 'ok' in line:
-                        new_line += 'o'
+                        new_line += '1'
                         break
+                new_line += f";{coder_nodes(f'{graph_name}-{elimination_method}.txt')}"
                 report.write(new_line + '\n')
 
 if __name__ == '__main__':
